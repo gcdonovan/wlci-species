@@ -1,10 +1,34 @@
-# WLCI Species 
+Introduction
+This repository contains code for creating a list of species referenced in Wyoming Landscape Conservation Initiative (WLCI) publications and running it through the Taxa Information Registry, a set of data processing algorithms that are being developed under the Biogeographic Information System. This is all very experimental at this stage and should not be used beyond internal evaluation and discussions. The purpose of this exercise is to examine what information we can bring together from across various available public data sources to aid in the work of evaluating the current state of scientific knowledge about these species.
 
-This repository contains code for creating a list of species referenced in Wyoming Landscape Conservation Initative and running it through the Taxa Information Registry, a set of data processing algorithms we are developing under the Biogeographic Information System. This is all very experimental at this stage and should not be used beyond internal evaluation and discussions. The purpose of this exercise is to examine what all information we can bring together from across various available public data sources to aid in the work of evaluating the current state of scientific knowledge about these species.
+Data Management Considerations
+This workflow system was developed in 2019 as an effort by USGS to compile information on WLCI species of interest. The source data, processing codes, cache of processed data, and documentation incorporated in this data repository were considered beneficial to release as a USGS data product for reference and use by others. The development of the repository and documentation, followed and contributed to best practices for USGS data management. The documentation on processing steps found within each step Juypter notebook along with the Workflow information found in the document should be sufficient for others to clearly understand and build on this work in new ways and to trust the data for appropriate uses. 
 
-Data are being built in '/Data Release'.  
+Species Source Information
+The list of unique WLCI species names was assembled from a literature database of WLCI publications developed in Zotero and the eXtract Dark Data database (xDD). The latest version of the literature database was exported as CSL JSON and posted to the WLCI Publications SB page: https://www.sciencebase.gov/catalog/item/4f4e476fe4b07f02db47e19f
+The records in this literature database were searched against the xDD API to develop a list of matching records. This list is included in the sources folder under "WLCI Literature xDD Matches". Using this matching records list, the list of unique WLCI species names was created. This list is included in the sources folder under "WLCI Species List from Literature" and is referenced in several of the processing codes. 
 
-Sources:  A literature database of WLCI products was developed in Zotero.  The latest version was exported as CSL JSON and posted to the WLCI Publications SB page: https://www.sciencebase.gov/catalog/item/4f4e476fe4b07f02db47e19f
+Workflow
+Many of the steps in this repository build upon each other. The first four steps build the foundation for the following steps and should be run first.
 
-This is still very much a work in progress.
+1. Build Species List - Utilizes the existing Wyoming Landscape Conservation Initiative (WLIC) literature database and the eXtract Dark Data database (xDD, also known as GeoDeepDive: https://geodeepdive.org/) to build a list of unique species names that have been published on in WLCI efforts.
 
+2. Consult ITIS - The Integrated Taxonomic Information System (ITIS) acts as a source for taxonomic data about species. Scientific species names from the WLCI species name list are used to identify species in ITIS. The script runs a parallel process to obtain information from the ITIS API via the ITIS module, which uses various search mechanisms in the bispy package. In this case, both valid/accepted and invalid/not accepted taxonomic records are collected and cached. 
+
+3. ITIS Exploration - Explores the records retrieved from the consultation between the WLCI species name list and the ITIS API. The cached results are examined and indicate several cases where species names from the WLCI species name list do not match with ITIS records. This information is indicated under “usage” within  “itis_data” of each record as “not accepted” or “invalid”. This result can be attributed to several reasons, including the misspelling of a species name, the use of a synonym or junior synonym, the use of an original name or a combination, and the use of a subsequent name or a combination within the original WLCI species name list. In the case of any disagreement between WLCI scientists and the taxonomic authority, both the invalid/not accepted and valid/accepted ITIS names based off of the WLCI species name list are used for further consultations with additional systems. 
+
+4.ITIS Geographic Information- Utilities the ITIS API and the WLCI species record, itis.json, created in the Consult ITIS Jupyter notebook to compile geographic and jurisdictional information on species of interest. This additional information provides insight as to whether or not certain species should be included or omitted from the species name list used in additional searches. 
+
+5. Additional Data from TESS - To ensure the WLCI species name list contains the best information for further processing, the FWS Threatened and Endangered Species System web service is consulted. This notebook uses the TESS class of the TESS module in the bispy package to return and cache TESS species information. 
+
+6. Check SGCN - Searches the Species of Greatest Conservation Need (SGCN) lists to identify WLCI species names that appear on the SGCN national list. The script uses an SGCN module in the bispy package to search the SGCN API. It returns and caches the summarized National List records, which include state lists that have species in their conservation planning process. The WLCI species names that appear on the Wyoming SGCN list are examined. 
+
+7.  Check xDD Library - Searches the  xDD database to identify WLCI species names that appear in publications. The xDD database is continuously updated with published scientific literature from many large publishers including Elsiver, Taylor & Francis, GSA, and USGS. The script uses the xDD module in the bispy package to search the xDD REST API and cache retrieved records. 
+
+8. Check NatureServe - Searches the NatureServe species data system to identify WLCI species that appear in this system. The script uses a set of functions and module within the bispy package to interact with the NatureServe API and cache retrieved records. 
+
+9. Check GAP -  Searches information on terrestrial vertebrate species managed through the USGS Gap Analysis Project to identify WLCI species that appear in the project. This script uses a set of functions and module within the bispy package to cache retrieved records. These records include information on species habitat requirements, range and habitat maps, and a review process specifying protection status within states where habitat classes have been mapped. 
+
+10. Check ScienceBase - Searches the USGS ScienceBase to return data release items that mention WLCI species of interest. The script runs a parallel process to obtain species information from the sciencebasepy module by searching for items that contain a given WLCI species name. 
+
+11. Check GBIF - Searches the Global Biodiversity Information Facility (GBIF) to return information on WLCI species of interest. The script uses a set of functions and module within the bispy package to interact with the GBIF API and cache retrieved records. This information includes basis of record information, a time series by year for the number of occurrences, and information about the institution that provided the record.
