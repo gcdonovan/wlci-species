@@ -10,9 +10,9 @@ dependencies:
   - pandas
   - pip
   - requests
-  - pyzotero
   - pip:
     - sciencebasepy
     - git+git://github.com/usgs-bcb/bispy.git
+    - git+https://github.com/skybristol/pyzotero@attachment-template-type#egg=pyzotero
 
 
